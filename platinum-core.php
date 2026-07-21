@@ -8,8 +8,6 @@ declare(strict_types=1);
 |--------------------------------------------------------------------------
 |
 | Framework bootstrap entry point.
-| This file initializes the framework runtime and returns the running
-| Application instance.
 |
 */
 
@@ -47,7 +45,13 @@ if (! file_exists($autoload)) {
 
 require_once $autoload;
 
-use Platinum\Core\Foundation\Kernel;
+/*
+|--------------------------------------------------------------------------
+| Framework Helpers
+|--------------------------------------------------------------------------
+*/
+
+require_once PLATINUM_SRC_PATH . '/Support/helpers.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -55,4 +59,6 @@ use Platinum\Core\Foundation\Kernel;
 |--------------------------------------------------------------------------
 */
 
-return Kernel::boot();
+use Platinum\Core\Foundation\Kernel;
+
+Kernel::boot();

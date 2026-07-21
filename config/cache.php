@@ -1,0 +1,11 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+
+    'driver' => 'file',
+
+    'path' => PLATINUM_STORAGE_PATH . '/cache',
+
+];

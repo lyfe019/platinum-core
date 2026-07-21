@@ -44,22 +44,18 @@ final class WordPressHostAdapter
     {
         add_action('admin_notices', function (): void {
 
-            $environment = $this->application->environment();
+    echo '<div class="notice notice-success">';
 
-            echo '<div class="notice notice-success">';
+    echo '<p><strong>✅ Platinum Framework Loaded</strong></p>';
 
-            echo '<p>';
+    echo '<p>Environment: ' . esc_html(config('app.environment')) . '</p>';
 
-            echo '<strong>✅ Platinum Framework Loaded</strong><br>';
+    echo '<p>Framework: ' . esc_html(config('app.name')) . '</p>';
 
-            echo 'Environment: <code>' .
-                esc_html($environment) .
-                '</code>';
+    echo '<p>Version: ' . esc_html(config('app.version')) . '</p>';
 
-            echo '</p>';
+    echo '</div>';
 
-            echo '</div>';
-
-        });
+});
     }
 }
