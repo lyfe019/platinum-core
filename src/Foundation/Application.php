@@ -4,33 +4,40 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Foundation;
 
-/**
- * Represents the running Platinum application.
- */
+use Platinum\Core\Container\Container;
+use Platinum\Core\Container\ServiceProvider;
+
 final class Application
 {
     /**
-     * The current application environment.
+     * Runtime environment.
      */
     private string $environment;
 
     /**
-     * Indicates whether the application has booted.
+     * Service container.
      */
-    private bool $booted = false;
+    private Container $container;
 
     /**
-     * Create a new application instance.
+     * Registered service providers.
+     *
+     * @var array<int, ServiceProvider>
      */
-    public function __construct(string $environment)
-    {
-        $this->environment = $environment;
+    private array $providers = [];
 
-        $this->booted = true;
+    /**
+     * Create the application.
+     */
+    public function __construct()
+    {
+        $this->environment = Environment::current();
+
+        $this->container = new Container();
     }
 
     /**
-     * Get the current environment.
+     * Return the environment.
      */
     public function environment(): string
     {
@@ -38,10 +45,32 @@ final class Application
     }
 
     /**
-     * Determine whether the application has booted.
+     * Return the service container.
      */
-    public function booted(): bool
+    public function container(): Container
     {
-        return $this->booted;
+        return $this->container;
+    }
+
+    /**
+     * Register a service provider.
+     */
+    public function register(ServiceProvider $provider): self
+    {
+        $provider->register();
+
+        $this->providers[] = $provider;
+
+        return $this;
+    }
+
+    /**
+     * Boot all registered providers.
+     */
+    public function bootProviders(): void
+    {
+        foreach ($this->providers as $provider) {
+            $provider->boot();
+        }
     }
 }
