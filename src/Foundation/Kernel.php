@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Foundation;
 
+use Platinum\Core\Events\EventBus;
+use Platinum\Core\Events\Events\FrameworkStarted;
 use Platinum\Core\Providers\FrameworkServiceProvider;
 
 /**
@@ -17,6 +19,12 @@ final class Kernel
      * Running application.
      */
     private static ?Application $application = null;
+
+    /**
+     * Indicates whether the framework started event
+     * has been published.
+     */
+    private static bool $frameworkStarted = false;
 
     /**
      * Boot the framework.
@@ -59,6 +67,21 @@ final class Kernel
 
         /*
         |--------------------------------------------------------------------------
+        | Publish FrameworkStarted
+        |--------------------------------------------------------------------------
+        */
+
+        $application
+            ->container()
+            ->make(EventBus::class)
+            ->publish(
+                new FrameworkStarted()
+            );
+
+        self::$frameworkStarted = true;
+
+        /*
+        |--------------------------------------------------------------------------
         | Store Running Application
         |--------------------------------------------------------------------------
         */
@@ -74,5 +97,14 @@ final class Kernel
     public static function application(): Application
     {
         return self::$application ?? self::boot();
+    }
+
+    /**
+     * Determine whether the framework started
+     * event has been published.
+     */
+    public static function frameworkStarted(): bool
+    {
+        return self::$frameworkStarted;
     }
 }

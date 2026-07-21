@@ -7,6 +7,8 @@ namespace Platinum\Core\Integration\WordPress;
 use Platinum\Core\Foundation\Application;
 use Platinum\Core\Support\Clock;
 use Platinum\Core\Support\ClockFormatter;
+use Platinum\Core\Events\Listeners\FrameworkStartedListener;
+use Platinum\Core\Foundation\Kernel;
 
 /**
  * WordPress Host Adapter
@@ -160,6 +162,26 @@ final class WordPressHostAdapter
             echo '<p><strong>Context Loader:</strong> Ready</p>';
 
             echo '<p><strong>Context Lifecycle:</strong> Completed</p>';
+
+            echo '<hr>';
+
+echo '<p><strong>Event Bus:</strong> Ready</p>';
+
+echo '<p><strong>FrameworkStarted Published:</strong> '
+    . (
+        Kernel::frameworkStarted()
+            ? 'Yes'
+            : 'No'
+    )
+    . '</p>';
+
+echo '<p><strong>FrameworkStarted Listener Executed:</strong> '
+    . (
+        FrameworkStartedListener::executed()
+            ? 'Yes'
+            : 'No'
+    )
+    . '</p>';
 
             echo '</div>';
         });
