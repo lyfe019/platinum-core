@@ -1,0 +1,22 @@
+{
+    "name": "platinum/core",
+    "description": "A modular monolith framework for WordPress.",
+    "type": "library",
+    "license": "proprietary",
+    "require": {
+        "php": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Platinum\\Core\\": "src/"
+        },
+        "files": [
+            "src/Support/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Platinum\\Core\\Tests\\": "tests/"
+        }
+    }
+}
