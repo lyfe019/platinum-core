@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Foundation;
 
-use Platinum\Core\Providers\ClockServiceProvider;
+use Platinum\Core\Providers\FrameworkServiceProvider;
 
+/**
+ * Framework Kernel.
+ *
+ * Responsible for bootstrapping the Platinum Core framework.
+ */
 final class Kernel
 {
     /**
@@ -31,7 +36,7 @@ final class Kernel
         */
 
         $application->register(
-            new ClockServiceProvider($application)
+            new FrameworkServiceProvider($application)
         );
 
         /*
@@ -41,6 +46,22 @@ final class Kernel
         */
 
         $application->bootProviders();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Load Contexts
+        |--------------------------------------------------------------------------
+        */
+
+        $application
+            ->contextLoader()
+            ->load();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Store Running Application
+        |--------------------------------------------------------------------------
+        */
 
         self::$application = $application;
 

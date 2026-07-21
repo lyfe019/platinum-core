@@ -58,11 +58,6 @@ final class WordPressHostAdapter
             |--------------------------------------------------------------------------
             | Resolve ClockFormatter
             |--------------------------------------------------------------------------
-            |
-            | ClockFormatter is NOT registered in the container.
-            | The container should automatically construct it using reflection,
-            | injecting the registered Clock singleton.
-            |
             */
 
             $formatter = $container->make(ClockFormatter::class);
@@ -110,6 +105,32 @@ final class WordPressHostAdapter
             echo '<p><strong>Output:</strong> '
                 . esc_html($formatter->formatted())
                 . '</p>';
+
+            echo '<hr>';
+
+            echo '<p><strong>Providers Loaded:</strong> '
+                . count($this->application->providers())
+                . '</p>';
+
+            echo '<p><strong>Contexts Registered:</strong> '
+                . $this->application
+                    ->contexts()
+                    ->count()
+                . '</p>';
+
+            echo '<p><strong>Registry Empty:</strong> '
+                . (
+                    $this->application
+                        ->contexts()
+                        ->isEmpty()
+                        ? 'Yes'
+                        : 'No'
+                )
+                . '</p>';
+
+            echo '<p><strong>Context Loader:</strong> Ready</p>';
+
+            echo '<p><strong>Context Lifecycle:</strong> Completed</p>';
 
             echo '</div>';
         });

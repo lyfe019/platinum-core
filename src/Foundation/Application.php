@@ -6,11 +6,16 @@ namespace Platinum\Core\Foundation;
 
 use Platinum\Core\Container\Container;
 use Platinum\Core\Container\ServiceProvider;
+use Platinum\Core\Contexts\ContextLoader;
+use Platinum\Core\Contexts\ContextRegistry;
 
+/**
+ * Represents the running Platinum application.
+ */
 final class Application
 {
     /**
-     * Runtime environment.
+     * Current runtime environment.
      */
     private string $environment;
 
@@ -18,6 +23,16 @@ final class Application
      * Service container.
      */
     private Container $container;
+
+    /**
+     * Registered bounded contexts.
+     */
+    private ContextRegistry $contexts;
+
+    /**
+     * Context loader.
+     */
+    private ContextLoader $contextLoader;
 
     /**
      * Registered service providers.
@@ -34,10 +49,14 @@ final class Application
         $this->environment = Environment::current();
 
         $this->container = new Container();
+
+        $this->contexts = new ContextRegistry();
+
+        $this->contextLoader = new ContextLoader($this);
     }
 
     /**
-     * Return the environment.
+     * Get the current environment.
      */
     public function environment(): string
     {
@@ -45,7 +64,7 @@ final class Application
     }
 
     /**
-     * Return the service container.
+     * Get the service container.
      */
     public function container(): Container
     {
@@ -53,15 +72,41 @@ final class Application
     }
 
     /**
+     * Get the context registry.
+     */
+    public function contexts(): ContextRegistry
+    {
+        return $this->contexts;
+    }
+
+    /**
+     * Get the context loader.
+     */
+    public function contextLoader(): ContextLoader
+    {
+        return $this->contextLoader;
+    }
+
+    /**
      * Register a service provider.
      */
-    public function register(ServiceProvider $provider): self
+    public function register(ServiceProvider $provider): static
     {
-        $provider->register();
-
         $this->providers[] = $provider;
 
+        $provider->register();
+
         return $this;
+    }
+
+    /**
+     * Get all registered providers.
+     *
+     * @return array<int, ServiceProvider>
+     */
+    public function providers(): array
+    {
+        return $this->providers;
     }
 
     /**
