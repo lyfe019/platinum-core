@@ -8,7 +8,8 @@
     },
     "autoload": {
         "psr-4": {
-            "Platinum\\Core\\": "src/"
+            "Platinum\\Core\\": "src/",
+            "Platinum\\Applications\\": "applications/"
         },
         "files": [
             "src/Support/helpers.php"

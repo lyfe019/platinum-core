@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Platinum\Core\Contexts;
 
 use Platinum\Core\Foundation\Application;
+use Platinum\Applications\ExampleApplication\ExampleApplication;
 
 /**
  * Context Loader.
@@ -47,16 +48,13 @@ final class ContextLoader
     }
 
     /**
-     * Discover available contexts.
-     *
-     * For now, the framework intentionally discovers nothing.
-     * Automatic discovery will be implemented later.
-     *
-     * @return array<int, ContextInterface>
+     * Discover application contexts.
      */
-    public function discover(): array
+    public function discover(): void
     {
-        return [];
+        $application = new ExampleApplication();
+
+        $application->registerContexts($this);
     }
 
     /**
@@ -98,9 +96,7 @@ final class ContextLoader
         |--------------------------------------------------------------------------
         */
 
-        foreach ($this->discover() as $context) {
-            $this->register($context);
-        }
+        $this->discover();
 
         /*
         |--------------------------------------------------------------------------

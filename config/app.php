@@ -8,6 +8,6 @@ return [
 
     'version' => PLATINUM_VERSION,
 
-    'environment' => \Platinum\Core\Foundation\Environment::current(),
+    'environment' => \Platinum\Core\Foundation\Environment::detect(),
 
 ];

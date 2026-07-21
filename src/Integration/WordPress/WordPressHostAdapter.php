@@ -118,6 +118,35 @@ final class WordPressHostAdapter
                     ->count()
                 . '</p>';
 
+            echo '<hr>';
+
+            echo '<p><strong>Registered Contexts:</strong></p>';
+
+            foreach ($this->application->contexts()->all() as $context) {
+
+                echo '<p>&bull; '
+                    . esc_html($context->name())
+                    . '</p>';
+
+                echo '<p style="margin-left:20px;"><strong>Initialized:</strong> '
+                    . (
+                        method_exists($context, 'initialized')
+                            ? ($context->initialized() ? 'Yes' : 'No')
+                            : 'Unknown'
+                    )
+                    . '</p>';
+
+                echo '<p style="margin-left:20px;"><strong>Booted:</strong> '
+                    . (
+                        method_exists($context, 'booted')
+                            ? ($context->booted() ? 'Yes' : 'No')
+                            : 'Unknown'
+                    )
+                    . '</p>';
+            }
+
+            echo '<hr>';
+
             echo '<p><strong>Registry Empty:</strong> '
                 . (
                     $this->application

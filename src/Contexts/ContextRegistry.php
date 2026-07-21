@@ -7,7 +7,13 @@ namespace Platinum\Core\Contexts;
 use InvalidArgumentException;
 
 /**
- * Stores and manages all registered bounded contexts.
+ * Context Registry.
+ *
+ * Stores all bounded contexts that have been registered with
+ * the running application.
+ *
+ * The registry is the single source of truth for context lookup
+ * during the application's lifetime.
  */
 final class ContextRegistry
 {
@@ -19,7 +25,9 @@ final class ContextRegistry
     private array $contexts = [];
 
     /**
-     * Register a context.
+     * Register a bounded context.
+     *
+     * @throws InvalidArgumentException
      */
     public function register(ContextInterface $context): void
     {
@@ -38,7 +46,7 @@ final class ContextRegistry
     }
 
     /**
-     * Determine whether a context exists.
+     * Determine whether the specified context exists.
      */
     public function has(string $name): bool
     {
@@ -47,6 +55,8 @@ final class ContextRegistry
 
     /**
      * Retrieve a registered context.
+     *
+     * @throws InvalidArgumentException
      */
     public function get(string $name): ContextInterface
     {
@@ -81,7 +91,7 @@ final class ContextRegistry
     }
 
     /**
-     * Determine whether any contexts have been registered.
+     * Determine whether the registry is empty.
      */
     public function isEmpty(): bool
     {

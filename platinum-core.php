@@ -61,4 +61,4 @@ require_once PLATINUM_SRC_PATH . '/Support/helpers.php';
 
 use Platinum\Core\Foundation\Kernel;
 
-Kernel::boot();
+return Kernel::boot();

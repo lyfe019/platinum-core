@@ -46,7 +46,7 @@ final class Application
      */
     public function __construct()
     {
-        $this->environment = Environment::current();
+ 		$this->environment = Environment::detect();
 
         $this->container = new Container();
 
