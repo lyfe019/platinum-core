@@ -5,11 +5,18 @@ declare(strict_types=1);
 namespace Platinum\Core\Providers;
 
 use Platinum\Core\Container\ServiceProvider;
+use Platinum\Core\Contracts\Logger;
 use Platinum\Core\Http\ApiKernel;
 use Platinum\Core\Http\Controllers\StatusController;
+use Platinum\Core\Http\Middleware\ExceptionMiddleware;
+use Platinum\Core\Http\Middleware\FrameworkVerificationMiddleware;
+use Platinum\Core\Http\Middleware\LoggingMiddleware;
+use Platinum\Core\Http\Middleware\MiddlewarePipeline;
+use Platinum\Core\Http\Middleware\MiddlewareStack;
 use Platinum\Core\Http\Router;
 use Platinum\Core\Integration\WordPress\WordPressRequestAdapter;
 use Platinum\Core\Integration\WordPress\WordPressResponseAdapter;
+use Platinum\Core\Logging\DefaultLogger;
 
 /**
  * HTTP Service Provider.
@@ -38,6 +45,71 @@ final class HttpServiceProvider extends ServiceProvider
 
         /*
         |--------------------------------------------------------------------------
+        | Middleware Stack
+        |--------------------------------------------------------------------------
+        */
+
+        $container->singleton(
+            MiddlewareStack::class,
+            fn () => new MiddlewareStack()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Middleware Pipeline
+        |--------------------------------------------------------------------------
+        */
+
+        $container->singleton(
+            MiddlewarePipeline::class,
+            fn () => new MiddlewarePipeline()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Logger
+        |--------------------------------------------------------------------------
+        |
+        | Register the framework logger.
+        | All framework components depend on the Logger contract rather
+        | than a concrete logging implementation.
+        |
+        */
+
+        $container->singleton(
+            Logger::class,
+            fn () => new DefaultLogger()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Middleware
+        |--------------------------------------------------------------------------
+        |
+        | Register framework middleware. These are resolved from the
+        | container so they can receive constructor-injected dependencies.
+        |
+        */
+
+        $container->singleton(
+            ExceptionMiddleware::class,
+            fn () => new ExceptionMiddleware()
+        );
+
+        $container->singleton(
+            LoggingMiddleware::class,
+            fn () => new LoggingMiddleware(
+                $container->make(Logger::class)
+            )
+        );
+
+        $container->singleton(
+            FrameworkVerificationMiddleware::class,
+            fn () => new FrameworkVerificationMiddleware()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
         | API Kernel
         |--------------------------------------------------------------------------
         */
@@ -45,7 +117,9 @@ final class HttpServiceProvider extends ServiceProvider
         $container->singleton(
             ApiKernel::class,
             fn () => new ApiKernel(
-                $container->make(Router::class)
+                $container->make(Router::class),
+                $container->make(MiddlewareStack::class),
+                $container->make(MiddlewarePipeline::class),
             )
         );
 
@@ -77,10 +151,42 @@ final class HttpServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $container = $this->app->container();
+
         /** @var Router $router */
-        $router = $this->app
-            ->container()
-            ->make(Router::class);
+        $router = $container->make(
+            Router::class
+        );
+
+        /** @var MiddlewareStack $stack */
+        $stack = $container->make(
+            MiddlewareStack::class
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Global Middleware
+        |--------------------------------------------------------------------------
+        |
+        | Middleware execute in the order they are registered.
+        | ExceptionMiddleware wraps the entire pipeline.
+        | LoggingMiddleware records every request and response.
+        | FrameworkVerificationMiddleware verifies that the
+        | middleware pipeline is being traversed.
+        |
+        */
+
+        $stack->push(
+            $container->make(ExceptionMiddleware::class)
+        );
+
+        $stack->push(
+            $container->make(LoggingMiddleware::class)
+        );
+
+        $stack->push(
+            $container->make(FrameworkVerificationMiddleware::class)
+        );
 
         /*
         |--------------------------------------------------------------------------

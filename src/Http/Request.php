@@ -47,6 +47,11 @@ final class Request
     private array $headers;
 
     /**
+     * Client IP address.
+     */
+    private string $ip;
+
+    /**
      * Create a new HTTP request.
      *
      * @param array<string, mixed>  $query
@@ -58,13 +63,15 @@ final class Request
         string $uri,
         array $query = [],
         array $body = [],
-        array $headers = []
+        array $headers = [],
+        string $ip = '0.0.0.0'
     ) {
         $this->method = strtoupper($method);
         $this->uri = $uri;
         $this->query = $query;
         $this->body = $body;
         $this->headers = $headers;
+        $this->ip = $ip;
     }
 
     /**
@@ -81,6 +88,14 @@ final class Request
     public function uri(): string
     {
         return $this->uri;
+    }
+
+    /**
+     * Return the client IP address.
+     */
+    public function ip(): string
+    {
+        return $this->ip;
     }
 
     /**
@@ -146,8 +161,12 @@ final class Request
     /**
      * Determine whether a header exists.
      */
-    public function hasHeader(string $name): bool
-    {
-        return array_key_exists($name, $this->headers);
+    public function hasHeader(
+        string $name
+    ): bool {
+        return array_key_exists(
+            $name,
+            $this->headers
+        );
     }
 }

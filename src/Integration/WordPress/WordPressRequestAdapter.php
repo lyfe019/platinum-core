@@ -29,6 +29,7 @@ final class WordPressRequestAdapter
             query: $request->get_query_params(),
             body: $this->resolveBody($request),
             headers: $request->get_headers(),
+            ip: $this->resolveIp(),
         );
     }
 
@@ -76,5 +77,20 @@ final class WordPressRequestAdapter
         }
 
         return $request->get_body_params();
+    }
+
+    /**
+     * Resolve the client IP address.
+     *
+     * For now, the framework uses the direct remote
+     * address reported by the web server. Support for
+     * trusted proxy headers (such as X-Forwarded-For)
+     * can be introduced later without changing the
+     * Request abstraction.
+     */
+    private function resolveIp(): string
+    {
+        return $_SERVER['REMOTE_ADDR']
+            ?? '0.0.0.0';
     }
 }

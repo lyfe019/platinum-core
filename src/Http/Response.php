@@ -7,36 +7,27 @@ namespace Platinum\Core\Http;
 /**
  * HTTP Response.
  *
- * Represents an outgoing HTTP response independently
- * of the underlying host environment.
- *
- * This class is intentionally immutable. Once created,
- * the response cannot be modified.
+ * Represents an outgoing HTTP response.
  */
 final class Response
 {
-    /**
-     * HTTP status code.
-     */
-    private int $status;
-
-    /**
-     * Response headers.
-     *
-     * @var array<string, string>
-     */
-    private array $headers;
-
     /**
      * Response body.
      */
     private mixed $body;
 
     /**
-     * Create a new HTTP response.
-     *
-     * @param array<string, string> $headers
+     * Status code.
      */
+    private int $status;
+
+    /**
+     * Response headers.
+     *
+     * @var array<string,string>
+     */
+    private array $headers = [];
+
     public function __construct(
         mixed $body = null,
         int $status = 200,
@@ -48,25 +39,37 @@ final class Response
     }
 
     /**
-     * Return the response body.
+     * Create JSON response.
      */
-    public function body(): mixed
-    {
-        return $this->body;
+    public static function json(
+        array $data,
+        int $status = 200
+    ): self {
+        return new self(
+            $data,
+            $status,
+            [
+                'Content-Type' => 'application/json',
+            ]
+        );
     }
 
     /**
-     * Return the HTTP status code.
+     * Add or replace a response header.
      */
-    public function status(): int
-    {
-        return $this->status;
+    public function header(
+        string $name,
+        string $value
+    ): self {
+        $this->headers[$name] = $value;
+
+        return $this;
     }
 
     /**
-     * Return all response headers.
+     * Return headers.
      *
-     * @return array<string, string>
+     * @return array<string,string>
      */
     public function headers(): array
     {
@@ -74,48 +77,18 @@ final class Response
     }
 
     /**
-     * Return a single response header.
+     * Return body.
      */
-    public function header(
-        string $name,
-        ?string $default = null
-    ): ?string {
-        return $this->headers[$name] ?? $default;
-    }
-
-    /**
-     * Determine whether a header exists.
-     */
-    public function hasHeader(string $name): bool
+    public function body(): mixed
     {
-        return array_key_exists($name, $this->headers);
+        return $this->body;
     }
 
-
-
     /**
- * Create a JSON response.
- *
- * @param array<string,mixed> $data
- */
-public static function json(
-    array $data,
-    int $status = 200,
-    array $headers = []
-): self {
-    return new self(
-        body: $data,
-        status: $status,
-        headers: array_merge(
-            [
-                'Content-Type' => 'application/json',
-            ],
-            $headers
-        ),
-    );
-}
-
-
-
-   
+     * Return status.
+     */
+    public function status(): int
+    {
+        return $this->status;
+    }
 }
