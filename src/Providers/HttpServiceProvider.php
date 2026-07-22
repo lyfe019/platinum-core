@@ -14,6 +14,7 @@ use Platinum\Core\Http\Middleware\FrameworkVerificationMiddleware;
 use Platinum\Core\Http\Middleware\LoggingMiddleware;
 use Platinum\Core\Http\Middleware\MiddlewarePipeline;
 use Platinum\Core\Http\Middleware\MiddlewareStack;
+use Platinum\Core\Http\Middleware\RateLimitingMiddleware;
 use Platinum\Core\Http\Router;
 use Platinum\Core\Integration\WordPress\WordPressRequestAdapter;
 use Platinum\Core\Integration\WordPress\WordPressResponseAdapter;
@@ -122,6 +123,13 @@ final class HttpServiceProvider extends ServiceProvider
         );
 
         $container->singleton(
+            RateLimitingMiddleware::class,
+            fn () => new RateLimitingMiddleware(
+                $container->make(RateLimiter::class)
+            )
+        );
+
+        $container->singleton(
             FrameworkVerificationMiddleware::class,
             fn () => new FrameworkVerificationMiddleware()
         );
@@ -188,9 +196,9 @@ final class HttpServiceProvider extends ServiceProvider
         |
         | Middleware execute in the order they are registered.
         | ExceptionMiddleware wraps the entire pipeline.
-        | LoggingMiddleware records every request and response.
-        | FrameworkVerificationMiddleware verifies that the
-        | middleware pipeline is being traversed.
+        | LoggingMiddleware records every request.
+        | RateLimitingMiddleware throttles excessive requests.
+        | FrameworkVerificationMiddleware verifies the middleware pipeline.
         |
         */
 
@@ -200,6 +208,10 @@ final class HttpServiceProvider extends ServiceProvider
 
         $stack->push(
             $container->make(LoggingMiddleware::class)
+        );
+
+        $stack->push(
+            $container->make(RateLimitingMiddleware::class)
         );
 
         $stack->push(
