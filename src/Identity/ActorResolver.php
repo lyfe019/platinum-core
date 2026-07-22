@@ -10,12 +10,14 @@ namespace Platinum\Core\Identity;
  * Resolves the identity responsible for the current
  * request.
  *
- * The resolver currently returns an AnonymousActor for
- * every request. Future implementations will integrate
- * with the host environment (such as WordPress),
- * authentication providers, API keys, JWTs, or other
- * identity mechanisms without affecting the rest of the
- * framework.
+ * The resolver adapts the current host authentication
+ * mechanism into the framework's Actor abstraction.
+ *
+ * Under WordPress, authenticated users are translated
+ * into AuthenticatedActor instances. When no user is
+ * authenticated—or when the framework is running
+ * outside of WordPress—the resolver returns an
+ * AnonymousActor.
  */
 final class ActorResolver
 {
@@ -24,6 +26,63 @@ final class ActorResolver
      */
     public function resolve(): Actor
     {
-        return new AnonymousActor();
+        /*
+        |--------------------------------------------------------------------------
+        | Host Environment
+        |--------------------------------------------------------------------------
+        |
+        | If the framework is executing outside of WordPress,
+        | authentication cannot be resolved. Treat the request
+        | as anonymous.
+        |
+        */
+
+        if (
+            ! function_exists('is_user_logged_in')
+            || ! function_exists('wp_get_current_user')
+        ) {
+            return new AnonymousActor();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Anonymous User
+        |--------------------------------------------------------------------------
+        */
+
+        if (! is_user_logged_in()) {
+            return new AnonymousActor();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Resolve Current WordPress User
+        |--------------------------------------------------------------------------
+        */
+
+        $user = wp_get_current_user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Invalid User
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            ! isset($user->ID)
+            || (int) $user->ID <= 0
+        ) {
+            return new AnonymousActor();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Authenticated Actor
+        |--------------------------------------------------------------------------
+        */
+
+        return new AuthenticatedActor(
+            (string) $user->ID
+        );
     }
 }

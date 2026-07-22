@@ -9,9 +9,14 @@ use Platinum\Core\Http\Request;
 use Platinum\Core\Http\Response;
 
 /**
- * Framework status controller.
+ * Framework Status Controller.
  *
- * Returns the framework health status.
+ * Returns the framework health status together with
+ * the identity resolved for the current request.
+ *
+ * This endpoint exists primarily for framework
+ * verification and should be simplified once the
+ * Identity subsystem has been fully validated.
  */
 final class StatusController extends Controller
 {
@@ -21,8 +26,13 @@ final class StatusController extends Controller
     public function __invoke(
         Request $request
     ): Response {
+
+        $actor = $request->actor();
+
         return Response::json([
-            'framework' => 'running',
+            'framework'      => 'running',
+            'authenticated'  => $actor->authenticated(),
+            'actor'          => $actor->id(),
         ]);
     }
 }
