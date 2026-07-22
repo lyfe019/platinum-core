@@ -17,6 +17,7 @@ use Platinum\Core\Http\Middleware\MiddlewarePipeline;
 use Platinum\Core\Http\Middleware\MiddlewareStack;
 use Platinum\Core\Http\Middleware\RateLimitingMiddleware;
 use Platinum\Core\Http\Router;
+use Platinum\Core\Identity\ActorResolver;
 use Platinum\Core\Integration\WordPress\WordPressRequestAdapter;
 use Platinum\Core\Integration\WordPress\WordPressResponseAdapter;
 use Platinum\Core\Logging\DefaultLogger;
@@ -103,6 +104,22 @@ final class HttpServiceProvider extends ServiceProvider
 
         /*
         |--------------------------------------------------------------------------
+        | Actor Resolver
+        |--------------------------------------------------------------------------
+        |
+        | Register the framework actor resolver.
+        | The resolver determines the identity responsible
+        | for the current request.
+        |
+        */
+
+        $container->singleton(
+            ActorResolver::class,
+            fn () => new ActorResolver()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
         | Middleware
         |--------------------------------------------------------------------------
         |
@@ -137,14 +154,16 @@ final class HttpServiceProvider extends ServiceProvider
         |
         | Register the framework authentication middleware.
         | Authentication logic will be introduced in the Identity
-        | subsystem. For now, the middleware occupies its place
-        | in the global pipeline.
+        | subsystem. The middleware depends on the ActorResolver
+        | to determine the current actor.
         |
         */
 
         $container->singleton(
             AuthenticationMiddleware::class,
-            fn () => new AuthenticationMiddleware()
+            fn () => new AuthenticationMiddleware(
+                $container->make(ActorResolver::class)
+            )
         );
 
         $container->singleton(
