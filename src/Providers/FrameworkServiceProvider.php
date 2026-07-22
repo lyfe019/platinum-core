@@ -39,5 +39,9 @@ final class FrameworkServiceProvider extends ServiceProvider
         $this->app->register(
             new ViewServiceProvider($this->app)
         );
+
+        $this->app->register(
+            new HttpServiceProvider($this->app)
+        );
     }
 }

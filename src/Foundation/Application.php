@@ -118,4 +118,19 @@ final class Application
             $provider->boot();
         }
     }
+
+
+
+
+        /**
+         * Return the framework API kernel.
+         */
+        public function api(): ApiKernel
+        {
+            return $this->container->make(
+                ApiKernel::class
+            );
+        }
+
+
 }
