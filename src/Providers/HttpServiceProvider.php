@@ -9,6 +9,7 @@ use Platinum\Core\Contracts\Logger;
 use Platinum\Core\Contracts\RateLimiter;
 use Platinum\Core\Http\ApiKernel;
 use Platinum\Core\Http\Controllers\StatusController;
+use Platinum\Core\Http\Middleware\AuthenticationMiddleware;
 use Platinum\Core\Http\Middleware\ExceptionMiddleware;
 use Platinum\Core\Http\Middleware\FrameworkVerificationMiddleware;
 use Platinum\Core\Http\Middleware\LoggingMiddleware;
@@ -129,6 +130,23 @@ final class HttpServiceProvider extends ServiceProvider
             )
         );
 
+        /*
+        |--------------------------------------------------------------------------
+        | Authentication Middleware
+        |--------------------------------------------------------------------------
+        |
+        | Register the framework authentication middleware.
+        | Authentication logic will be introduced in the Identity
+        | subsystem. For now, the middleware occupies its place
+        | in the global pipeline.
+        |
+        */
+
+        $container->singleton(
+            AuthenticationMiddleware::class,
+            fn () => new AuthenticationMiddleware()
+        );
+
         $container->singleton(
             FrameworkVerificationMiddleware::class,
             fn () => new FrameworkVerificationMiddleware()
@@ -198,6 +216,7 @@ final class HttpServiceProvider extends ServiceProvider
         | ExceptionMiddleware wraps the entire pipeline.
         | LoggingMiddleware records every request.
         | RateLimitingMiddleware throttles excessive requests.
+        | AuthenticationMiddleware authenticates the current actor.
         | FrameworkVerificationMiddleware verifies the middleware pipeline.
         |
         */
@@ -212,6 +231,10 @@ final class HttpServiceProvider extends ServiceProvider
 
         $stack->push(
             $container->make(RateLimitingMiddleware::class)
+        );
+
+        $stack->push(
+            $container->make(AuthenticationMiddleware::class)
         );
 
         $stack->push(

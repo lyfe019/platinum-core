@@ -9,25 +9,25 @@ use Platinum\Core\Contracts\RateLimiter;
 /**
  * In-Memory Rate Limiter.
  *
- * A simple in-memory implementation of the framework
- * rate limiter contract.
+ * Stores request counters in memory for the lifetime of
+ * the current PHP process.
  *
  * This implementation is intended for framework
- * verification and testing. Because counters are
- * stored in memory, they are reset whenever the
- * application process is restarted.
+ * verification and development. It can later be replaced
+ * with Redis, database, cache, or WordPress transients
+ * without changing any middleware.
  */
 final class InMemoryRateLimiter implements RateLimiter
 {
     /**
-     * Recorded request attempts.
+     * Request attempts.
      *
      * @var array<string, array{attempts:int, expires:int}>
      */
     private array $attempts = [];
 
     /**
-     * Determine whether a request is allowed.
+     * Determine whether the request is allowed.
      */
     public function allow(
         string $key,
@@ -39,39 +39,55 @@ final class InMemoryRateLimiter implements RateLimiter
 
         /*
         |--------------------------------------------------------------------------
-        | Initialize or Reset Expired Window
+        | Create New Entry
         |--------------------------------------------------------------------------
         */
 
-        if (
-            ! isset($this->attempts[$key])
-            || $this->attempts[$key]['expires'] <= $now
-        ) {
+        if (! isset($this->attempts[$key])) {
+
             $this->attempts[$key] = [
-                'attempts' => 0,
-                'expires'  => $now + $decaySeconds,
+                'attempts' => 1,
+                'expires' => $now + $decaySeconds,
             ];
+
+            return true;
+        }
+
+        $entry = &$this->attempts[$key];
+
+        /*
+        |--------------------------------------------------------------------------
+        | Reset Expired Window
+        |--------------------------------------------------------------------------
+        */
+
+        if ($entry['expires'] <= $now) {
+
+            $entry = [
+                'attempts' => 1,
+                'expires' => $now + $decaySeconds,
+            ];
+
+            return true;
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Deny Requests That Exceed the Limit
+        | Reject Requests Above Limit
         |--------------------------------------------------------------------------
         */
 
-        if (
-            $this->attempts[$key]['attempts'] >= $maxAttempts
-        ) {
+        if ($entry['attempts'] >= $maxAttempts) {
             return false;
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Record the Attempt
+        | Increment Attempts
         |--------------------------------------------------------------------------
         */
 
-        $this->attempts[$key]['attempts']++;
+        $entry['attempts']++;
 
         return true;
     }
