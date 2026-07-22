@@ -6,20 +6,29 @@ namespace Platinum\Core\Http\Middleware;
 
 use Platinum\Core\Http\Request;
 use Platinum\Core\Http\Response;
+use Platinum\Core\Identity\ActorResolver;
 
 /**
  * HTTP Authentication Middleware.
  *
- * Responsible for authenticating the current request
- * before it reaches the application.
+ * Responsible for resolving the identity responsible
+ * for the current request before it reaches the
+ * application.
  *
- * At this stage, the middleware acts as a placeholder
- * within the middleware pipeline. Authentication logic
- * will be introduced in Phase 11 when the Identity
- * subsystem is implemented.
+ * Authorization is not performed at this stage.
+ * The resolved actor will be attached to the request
+ * in the next phase of the Identity subsystem.
  */
 final class AuthenticationMiddleware implements Middleware
 {
+    /**
+     * Create a new authentication middleware.
+     */
+    public function __construct(
+        private readonly ActorResolver $resolver
+    ) {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -30,14 +39,22 @@ final class AuthenticationMiddleware implements Middleware
 
         /*
         |--------------------------------------------------------------------------
-        | Authentication
+        | Resolve Current Actor
         |--------------------------------------------------------------------------
         |
-        | Authentication is not yet implemented. For now, every request
-        | is allowed to continue through the middleware pipeline.
-        | The Identity subsystem introduced in Phase 11 will resolve
-        | the current actor and enforce authentication where required.
+        | Resolve the identity responsible for the current request.
+        | At this stage, the resolver always returns an
+        | AnonymousActor. The actor will be attached to the
+        | request in the next phase.
         |
+        */
+
+        $actor = $this->resolver->resolve();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Continue Pipeline
+        |--------------------------------------------------------------------------
         */
 
         return $next->handle($request);
