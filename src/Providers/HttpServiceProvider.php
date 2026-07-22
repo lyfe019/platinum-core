@@ -6,6 +6,7 @@ namespace Platinum\Core\Providers;
 
 use Platinum\Core\Container\ServiceProvider;
 use Platinum\Core\Contracts\Logger;
+use Platinum\Core\Contracts\RateLimiter;
 use Platinum\Core\Http\ApiKernel;
 use Platinum\Core\Http\Controllers\StatusController;
 use Platinum\Core\Http\Middleware\ExceptionMiddleware;
@@ -17,6 +18,7 @@ use Platinum\Core\Http\Router;
 use Platinum\Core\Integration\WordPress\WordPressRequestAdapter;
 use Platinum\Core\Integration\WordPress\WordPressResponseAdapter;
 use Platinum\Core\Logging\DefaultLogger;
+use Platinum\Core\RateLimiting\InMemoryRateLimiter;
 
 /**
  * HTTP Service Provider.
@@ -79,6 +81,22 @@ final class HttpServiceProvider extends ServiceProvider
         $container->singleton(
             Logger::class,
             fn () => new DefaultLogger()
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Rate Limiter
+        |--------------------------------------------------------------------------
+        |
+        | Register the framework rate limiter.
+        | Middleware depends on the RateLimiter contract rather than
+        | a concrete implementation.
+        |
+        */
+
+        $container->singleton(
+            RateLimiter::class,
+            fn () => new InMemoryRateLimiter()
         );
 
         /*
