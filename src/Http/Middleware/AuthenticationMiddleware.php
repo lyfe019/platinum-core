@@ -16,8 +16,9 @@ use Platinum\Core\Identity\ActorResolver;
  * application.
  *
  * Authorization is not performed at this stage.
- * The resolved actor will be attached to the request
- * in the next phase of the Identity subsystem.
+ * The middleware resolves the current actor and
+ * attaches it to the immutable request before
+ * allowing execution to continue.
  */
 final class AuthenticationMiddleware implements Middleware
 {
@@ -43,13 +44,25 @@ final class AuthenticationMiddleware implements Middleware
         |--------------------------------------------------------------------------
         |
         | Resolve the identity responsible for the current request.
-        | At this stage, the resolver always returns an
-        | AnonymousActor. The actor will be attached to the
-        | request in the next phase.
+        | The resolver currently returns an AnonymousActor for every
+        | request. Future implementations will resolve authenticated
+        | actors from the host environment.
         |
         */
 
         $actor = $this->resolver->resolve();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Attach Actor
+        |--------------------------------------------------------------------------
+        |
+        | Preserve request immutability by creating a new request
+        | instance that carries the resolved actor.
+        |
+        */
+
+        $request = $request->withActor($actor);
 
         /*
         |--------------------------------------------------------------------------

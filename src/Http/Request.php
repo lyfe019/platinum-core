@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Http;
 
+use Platinum\Core\Identity\Actor;
+use Platinum\Core\Identity\AnonymousActor;
+
 /**
  * HTTP Request.
  *
@@ -52,6 +55,11 @@ final class Request
     private string $ip;
 
     /**
+     * Current request actor.
+     */
+    private Actor $actor;
+
+    /**
      * Create a new HTTP request.
      *
      * @param array<string, mixed>  $query
@@ -64,7 +72,8 @@ final class Request
         array $query = [],
         array $body = [],
         array $headers = [],
-        string $ip = '0.0.0.0'
+        string $ip = '0.0.0.0',
+        ?Actor $actor = null,
     ) {
         $this->method = strtoupper($method);
         $this->uri = $uri;
@@ -72,6 +81,7 @@ final class Request
         $this->body = $body;
         $this->headers = $headers;
         $this->ip = $ip;
+        $this->actor = $actor ?? new AnonymousActor();
     }
 
     /**
@@ -96,6 +106,31 @@ final class Request
     public function ip(): string
     {
         return $this->ip;
+    }
+
+    /**
+     * Return the current actor.
+     */
+    public function actor(): Actor
+    {
+        return $this->actor;
+    }
+
+    /**
+     * Return a copy of the request with a different actor.
+     */
+    public function withActor(
+        Actor $actor
+    ): self {
+        return new self(
+            method: $this->method,
+            uri: $this->uri,
+            query: $this->query,
+            body: $this->body,
+            headers: $this->headers,
+            ip: $this->ip,
+            actor: $actor,
+        );
     }
 
     /**
