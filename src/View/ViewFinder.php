@@ -5,76 +5,52 @@ declare(strict_types=1);
 namespace Platinum\Core\View;
 
 /**
- * View Finder.
+ * Framework View Finder.
  *
- * Coordinates template and layout resolution for
- * the framework View subsystem.
+ * Coordinates the process of resolving a logical
+ * framework View into a fully resolved rendering
+ * definition.
  *
- * The renderer depends only on this class rather
- * than interacting directly with the individual
- * resolvers.
+ * The ViewFinder delegates template and layout
+ * resolution to dedicated collaborators and
+ * returns an immutable ResolvedView.
+ *
+ * The renderer does not perform any resolution
+ * itself—it simply consumes the ResolvedView.
  */
 final class ViewFinder
 {
     /**
      * Create a new view finder.
-     *
-     * @param array<int, ViewLocation> $locations
      */
     public function __construct(
         private TemplateResolver $templateResolver,
         private LayoutResolver $layoutResolver,
-        private array $locations = [],
     ) {
     }
 
     /**
-     * Resolve a template.
+     * Resolve a framework view.
      *
      * @throws ViewException
      */
-    public function template(
-        ViewPath $path
-    ): Template {
+    public function find(
+        View $view
+    ): ResolvedView {
 
-        return $this->templateResolver->resolve(
-            $path,
-            $this->locations,
+        $template = $this->templateResolver
+            ->resolve(
+                $view->template()
+            );
+
+        $layout = $this->layoutResolver
+            ->resolve(
+                $view->layout()
+            );
+
+        return new ResolvedView(
+            $template,
+            $layout,
         );
-    }
-
-    /**
-     * Resolve a layout.
-     *
-     * @throws ViewException
-     */
-    public function layout(
-        ViewPath $path
-    ): Layout {
-
-        return $this->layoutResolver->resolve(
-            $path,
-            $this->locations,
-        );
-    }
-
-    /**
-     * Return all registered locations.
-     *
-     * @return array<int, ViewLocation>
-     */
-    public function locations(): array
-    {
-        return $this->locations;
-    }
-
-    /**
-     * Register an additional search location.
-     */
-    public function addLocation(
-        ViewLocation $location
-    ): void {
-
-        $this->locations[] = $location;
     }
 }

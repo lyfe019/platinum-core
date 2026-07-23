@@ -9,21 +9,38 @@ use Platinum\Core\View\Contracts\RendererInterface;
 /**
  * Framework View Renderer.
  *
- * Coordinates the rendering pipeline for framework
- * views.
+ * Coordinates the framework rendering pipeline.
  *
- * The renderer transforms an immutable View into an
- * immutable RenderResult.
+ * The renderer performs no template discovery,
+ * layout resolution or presentation-specific
+ * rendering itself.
  *
- * The renderer is presentation-framework agnostic.
- * It performs no WordPress integration and does not
- * directly locate templates or layouts.
+ * Its responsibility is to orchestrate the
+ * rendering collaborators.
  *
- * Those responsibilities belong to dedicated
- * collaborators introduced in later phases.
+ * Rendering flow:
+ *
+ * View
+ *   ↓
+ * ViewFinder
+ *   ↓
+ * ResolvedView
+ *   ↓
+ * ThemeBridge
+ *   ↓
+ * RenderResult
  */
 final class Renderer implements RendererInterface
 {
+    /**
+     * Create a new renderer.
+     */
+    public function __construct(
+        private ViewFinder $finder,
+        private ThemeBridge $themeBridge,
+    ) {
+    }
+
     /**
      * Render a framework view.
      *
@@ -35,52 +52,23 @@ final class Renderer implements RendererInterface
 
         /*
         |--------------------------------------------------------------------------
-        | Resolve Template
+        | Resolve the logical view.
         |--------------------------------------------------------------------------
-        |
-        | Template resolution will be delegated to the ViewFinder
-        | in a later phase. For now we construct a resolved template
-        | directly from the logical template name.
-        |
         */
 
-        $template = new Template(
-            $view->template(),
-            $view->template(),
+        $resolvedView = $this->finder->find(
+            $view
         );
 
         /*
         |--------------------------------------------------------------------------
-        | Resolve Layout
+        | Delegate rendering.
         |--------------------------------------------------------------------------
-        |
-        | Layout resolution will become configurable once the
-        | Layout Manager and Theme Bridge are introduced.
-        |
         */
 
-        $layout = new Layout(
-            'default',
-            'default',
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Render View
-        |--------------------------------------------------------------------------
-        |
-        | Actual template rendering will be implemented in a
-        | subsequent phase. For now, the renderer produces an
-        | empty render result while preserving all rendering
-        | metadata.
-        |
-        */
-
-        return new RenderResult(
-            content: '',
-            template: $template,
-            layout: $layout,
-            context: $view->context(),
+        return $this->themeBridge->render(
+            $resolvedView,
+            $view
         );
     }
 }
