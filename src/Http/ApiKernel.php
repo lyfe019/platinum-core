@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Http;
 
+use Platinum\Core\Container\Container;
 use Platinum\Core\Http\Middleware\MiddlewarePipeline;
 use Platinum\Core\Http\Middleware\MiddlewareStack;
 use RuntimeException;
@@ -26,6 +27,11 @@ final class ApiKernel
     private Router $router;
 
     /**
+     * Service container.
+     */
+    private Container $container;
+
+    /**
      * Registered middleware stack.
      */
     private MiddlewareStack $middlewareStack;
@@ -40,10 +46,12 @@ final class ApiKernel
      */
     public function __construct(
         Router $router,
+        Container $container,
         MiddlewareStack $middlewareStack,
         MiddlewarePipeline $middlewarePipeline
     ) {
         $this->router = $router;
+        $this->container = $container;
         $this->middlewareStack = $middlewareStack;
         $this->middlewarePipeline = $middlewarePipeline;
     }
@@ -54,6 +62,14 @@ final class ApiKernel
     public function router(): Router
     {
         return $this->router;
+    }
+
+    /**
+     * Return the service container.
+     */
+    public function container(): Container
+    {
+        return $this->container;
     }
 
     /**
@@ -114,7 +130,9 @@ final class ApiKernel
             );
         }
 
-        $instance = new $controller();
+        $instance = $this->container->make(
+            $controller
+        );
 
         if (! is_callable($instance)) {
             throw new RuntimeException(

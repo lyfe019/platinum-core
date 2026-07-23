@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Platinum\Core\Container\Exceptions;
+namespace Platinum\Core\Container;
 
 use Exception;
 

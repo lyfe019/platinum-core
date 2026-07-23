@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Providers;
 
+use Platinum\Core\Container\Container;
 use Platinum\Core\Container\ServiceProvider;
 use Platinum\Core\Contracts\Logger;
 use Platinum\Core\Contracts\RateLimiter;
@@ -16,6 +17,7 @@ use Platinum\Core\Http\Middleware\LoggingMiddleware;
 use Platinum\Core\Http\Middleware\MiddlewarePipeline;
 use Platinum\Core\Http\Middleware\MiddlewareStack;
 use Platinum\Core\Http\Middleware\RateLimitingMiddleware;
+use Platinum\Core\Http\Controllers\DatabaseStatusController;
 use Platinum\Core\Http\Router;
 use Platinum\Core\Identity\ActorResolver;
 use Platinum\Core\Integration\WordPress\WordPressRequestAdapter;
@@ -36,6 +38,22 @@ final class HttpServiceProvider extends ServiceProvider
     public function register(): void
     {
         $container = $this->app->container();
+
+        /*
+        |--------------------------------------------------------------------------
+        | Container
+        |--------------------------------------------------------------------------
+        |
+        | Register the framework service container so it can be
+        | injected into services such as the API kernel for
+        | controller resolution.
+        |
+        */
+
+        $container->singleton(
+            Container::class,
+            fn () => $container
+        );
 
         /*
         |--------------------------------------------------------------------------
@@ -74,11 +92,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Logger
         |--------------------------------------------------------------------------
-        |
-        | Register the framework logger.
-        | All framework components depend on the Logger contract rather
-        | than a concrete logging implementation.
-        |
         */
 
         $container->singleton(
@@ -90,11 +103,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Rate Limiter
         |--------------------------------------------------------------------------
-        |
-        | Register the framework rate limiter.
-        | Middleware depends on the RateLimiter contract rather than
-        | a concrete implementation.
-        |
         */
 
         $container->singleton(
@@ -106,11 +114,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Actor Resolver
         |--------------------------------------------------------------------------
-        |
-        | Register the framework actor resolver.
-        | The resolver determines the identity responsible
-        | for the current request.
-        |
         */
 
         $container->singleton(
@@ -122,10 +125,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Middleware
         |--------------------------------------------------------------------------
-        |
-        | Register framework middleware. These are resolved from the
-        | container so they can receive constructor-injected dependencies.
-        |
         */
 
         $container->singleton(
@@ -151,12 +150,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Authentication Middleware
         |--------------------------------------------------------------------------
-        |
-        | Register the framework authentication middleware.
-        | Authentication logic will be introduced in the Identity
-        | subsystem. The middleware depends on the ActorResolver
-        | to determine the current actor.
-        |
         */
 
         $container->singleton(
@@ -176,17 +169,16 @@ final class HttpServiceProvider extends ServiceProvider
         | API Kernel
         |--------------------------------------------------------------------------
         */
-
-        $container->singleton(
-            ApiKernel::class,
-            fn () => new ApiKernel(
-                $container->make(Router::class),
-                $container->make(MiddlewareStack::class),
-                $container->make(MiddlewarePipeline::class),
-            )
-        );
-
-        /*
+            $container->singleton(
+                ApiKernel::class,
+                fn () => new ApiKernel(
+                    $container->make(Router::class),
+                    $container,
+                    $container->make(MiddlewareStack::class),
+                    $container->make(MiddlewarePipeline::class),
+                )
+            );
+                    /*
         |--------------------------------------------------------------------------
         | WordPress Request Adapter
         |--------------------------------------------------------------------------
@@ -230,14 +222,6 @@ final class HttpServiceProvider extends ServiceProvider
         |--------------------------------------------------------------------------
         | Global Middleware
         |--------------------------------------------------------------------------
-        |
-        | Middleware execute in the order they are registered.
-        | ExceptionMiddleware wraps the entire pipeline.
-        | LoggingMiddleware records every request.
-        | RateLimitingMiddleware throttles excessive requests.
-        | AuthenticationMiddleware authenticates the current actor.
-        | FrameworkVerificationMiddleware verifies the middleware pipeline.
-        |
         */
 
         $stack->push(
@@ -269,6 +253,12 @@ final class HttpServiceProvider extends ServiceProvider
         $router->get(
             '/status',
             StatusController::class
+        );
+
+
+        $router->get(
+            '/database',
+            DatabaseStatusController::class
         );
     }
 }

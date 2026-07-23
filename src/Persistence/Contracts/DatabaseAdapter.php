@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Platinum\Core\Contracts;
+namespace Platinum\Core\Persistence\Contracts;
 
 /**
  * Database Adapter Contract.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Http\Controllers;
 
+use Platinum\Core\Persistence\Contracts\DatabaseAdapter;
 use Platinum\Core\Http\Controller;
 use Platinum\Core\Http\Request;
 use Platinum\Core\Http\Response;
@@ -11,15 +12,18 @@ use Platinum\Core\Http\Response;
 /**
  * Framework Status Controller.
  *
- * Returns the framework health status together with
- * the identity resolved for the current request.
- *
- * This endpoint exists primarily for framework
- * verification and should be simplified once the
- * Identity subsystem has been fully validated.
+ * Returns the current framework health status.
  */
 final class StatusController extends Controller
 {
+    /**
+     * Create a new status controller.
+     */
+    public function __construct(
+        private readonly DatabaseAdapter $database
+    ) {
+    }
+
     /**
      * Handle the incoming request.
      */
@@ -27,12 +31,23 @@ final class StatusController extends Controller
         Request $request
     ): Response {
 
-        $actor = $request->actor();
+        /*
+        |--------------------------------------------------------------------------
+        | Database Verification
+        |--------------------------------------------------------------------------
+        |
+        | Execute a simple query to verify that the framework can
+        | communicate with the configured persistence adapter.
+        |
+        */
+
+        $this->database->select('SELECT 1');
 
         return Response::json([
-            'framework'      => 'running',
-            'authenticated'  => $actor->authenticated(),
-            'actor'          => $actor->id(),
+            'framework' => 'running',
+            'database'  => 'connected',
+            'authenticated' => $request->actor()->authenticated(),
+            'actor' => $request->actor()->id(),
         ]);
     }
 }

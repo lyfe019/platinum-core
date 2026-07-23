@@ -41,18 +41,17 @@ final class ExceptionMiddleware implements Middleware
 
         } catch (Throwable $exception) {
 
-            /*
-            |--------------------------------------------------------------------------
-            | Convert any uncaught exception into a framework response
-            |--------------------------------------------------------------------------
-            */
+    return Response::json(
+        [
+            'message' => $exception->getMessage(),
+            'exception' => get_class($exception),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+        ],
+        500
+    );
+}
 
-            return Response::json(
-                [
-                    'message' => 'Internal Server Error',
-                ],
-                500
-            );
-        }
+           
     }
 }

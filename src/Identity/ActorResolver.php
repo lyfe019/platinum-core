@@ -62,6 +62,14 @@ final class ActorResolver
 
         $user = wp_get_current_user();
 
+        error_log(
+    sprintf(
+        'Logged In: %s | User ID: %d',
+        is_user_logged_in() ? 'yes' : 'no',
+        $user->ID ?? 0
+    )
+);
+
         /*
         |--------------------------------------------------------------------------
         | Invalid User
