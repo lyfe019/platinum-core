@@ -21,13 +21,15 @@ use Platinum\Core\View\Contracts\RendererInterface;
  * Rendering flow:
  *
  * View
- *   ↓
+ *      ↓
  * ViewFinder
- *   ↓
+ *      ↓
  * ResolvedView
- *   ↓
+ *      ↓
+ * ThemeContext
+ *      ↓
  * ThemeBridge
- *   ↓
+ *      ↓
  * RenderResult
  */
 final class Renderer implements RendererInterface
@@ -38,6 +40,7 @@ final class Renderer implements RendererInterface
     public function __construct(
         private ViewFinder $finder,
         private ThemeBridge $themeBridge,
+        private AssetManager $assets,
     ) {
     }
 
@@ -52,7 +55,7 @@ final class Renderer implements RendererInterface
 
         /*
         |--------------------------------------------------------------------------
-        | Resolve the logical view.
+        | Resolve View
         |--------------------------------------------------------------------------
         */
 
@@ -62,13 +65,29 @@ final class Renderer implements RendererInterface
 
         /*
         |--------------------------------------------------------------------------
-        | Delegate rendering.
+        | Build Theme Context
+        |--------------------------------------------------------------------------
+        |
+        | The ThemeContext becomes the presentation
+        | boundary passed to the ThemeBridge.
+        |
+        */
+
+        $context = new ThemeContext(
+            view: $view,
+            resolvedView: $resolvedView,
+            assets: $this->assets,
+            metadata: [],
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Delegate Rendering
         |--------------------------------------------------------------------------
         */
 
         return $this->themeBridge->render(
-            $resolvedView,
-            $view
+            $context
         );
     }
 }

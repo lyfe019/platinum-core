@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Platinum\Core\Integration\WordPress;
 
+use Platinum\Core\View\PHPRenderer;
 use Platinum\Core\View\RenderResult;
-use Platinum\Core\View\ResolvedView;
 use Platinum\Core\View\ThemeBridge;
 use Platinum\Core\View\ThemeContext;
 use Platinum\Core\View\ThemeHooks;
@@ -19,9 +19,9 @@ use Platinum\Core\View\ThemeHooks;
  * The bridge translates framework presentation
  * concepts into native WordPress behaviour.
  *
- * The bridge intentionally performs no template
- * rendering itself. Rendering is delegated to a
- * renderer introduced in a later phase.
+ * It does not perform rendering itself.
+ * Rendering is delegated to the framework's
+ * PHPRenderer.
  */
 final class WordPressThemeBridge implements ThemeBridge
 {
@@ -31,6 +31,14 @@ final class WordPressThemeBridge implements ThemeBridge
      * @var array<string,mixed>
      */
     private array $shared = [];
+
+    /**
+     * Create a new theme bridge.
+     */
+    public function __construct(
+        private PHPRenderer $renderer,
+    ) {
+    }
 
     /**
      * Render the supplied theme context.
@@ -64,7 +72,7 @@ final class WordPressThemeBridge implements ThemeBridge
 
         /*
         |--------------------------------------------------------------------------
-        | Before render.
+        | Before Render.
         |--------------------------------------------------------------------------
         */
 
@@ -75,32 +83,17 @@ final class WordPressThemeBridge implements ThemeBridge
 
         /*
         |--------------------------------------------------------------------------
-        | Retrieve resolved view.
+        | Execute Framework Renderer.
         |--------------------------------------------------------------------------
         */
 
-        $resolved = $context->resolvedView();
+        $output = $this->renderer->render(
+            $context
+        );
 
         /*
         |--------------------------------------------------------------------------
-        | Rendering.
-        |--------------------------------------------------------------------------
-        |
-        | A future PHPRenderer will receive:
-        |
-        | - Template
-        | - Layout
-        | - ViewContext
-        |
-        | and produce the final HTML.
-        |
-        */
-
-        $output = '';
-
-        /*
-        |--------------------------------------------------------------------------
-        | After render.
+        | After Render.
         |--------------------------------------------------------------------------
         */
 
@@ -108,6 +101,14 @@ final class WordPressThemeBridge implements ThemeBridge
             ThemeHooks::AFTER_RENDER,
             $context
         );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Return Render Result.
+        |--------------------------------------------------------------------------
+        */
+
+        $resolved = $context->resolvedView();
 
         return new RenderResult(
             content: $output,
